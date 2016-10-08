@@ -1,0 +1,26 @@
+{
+  "name": "vestergaardkramer",
+  "version": "1.0.0",
+  "description": "vestergaardkramer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rasmusvhansen/vestergaardkramer.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rasmusvhansen/vestergaardkramer/issues"
+  },
+  "homepage": "https://github.com/rasmusvhansen/vestergaardkramer#readme",
+  "devDependencies": {
+    "chokidar-cli": "^1.2.0",
+    "elm": "^0.17.1"
+  },
+  "scripts": {
+    "watch": "chokidar **/*.elm -c \"elm make src/elm/Main.elm --output dist/elm.js\" --initial"
+  }
+}
