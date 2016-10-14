@@ -4,7 +4,11 @@
   "description": "vestergaardkramer",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "watch": "chokidar **/*.elm -c \"elm make src/elm/Main.elm --output dist/elm.js\" --initial",
+    "postinstall": "elm-package install -y",
+    "clean": "rimraf dist/ && mkdir dist",
+    "copy": "copyfiles index.html dist && copyup src/js/*.js dist",
+    "build": "npm run clean && elm make src/elm/Main.elm --output dist/elm.js && npm run copy"
   },
   "repository": {
     "type": "git",
@@ -18,9 +22,8 @@
   "homepage": "https://github.com/rasmusvhansen/vestergaardkramer#readme",
   "devDependencies": {
     "chokidar-cli": "^1.2.0",
-    "elm": "^0.17.1"
-  },
-  "scripts": {
-    "watch": "chokidar **/*.elm -c \"elm make src/elm/Main.elm --output dist/elm.js\" --initial"
+    "copyfiles": "^1.0.0",
+    "elm": "^0.17.1",
+    "rimraf": "^2.5.4"
   }
 }
