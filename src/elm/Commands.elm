@@ -15,6 +15,12 @@ port fbPush : Wish -> Cmd msg
 port fbRemove : WishId -> Cmd msg
 
 
+port getWishes : String -> Cmd msg
+
+
+port listItems : (Encode.Value -> msg) -> Sub msg
+
+
 receive : Encode.Value -> Cmd Msg
 receive json =
     let
