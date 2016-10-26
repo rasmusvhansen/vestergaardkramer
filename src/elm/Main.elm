@@ -5,7 +5,6 @@ import Messages exposing (..)
 import Model exposing (..)
 import Html exposing (..)
 import Html.Events exposing (..)
-import Html.App as App
 import Html.Attributes exposing (..)
 import Json.Encode as Encode
 import Navigation
@@ -81,7 +80,7 @@ type alias Model =
 
 init : Result String Route -> ( Model, Cmd Msg )
 init result =
-    ( initModel, getWishes "rasmus" )
+    urlUpdate result initModel
 
 
 
@@ -108,13 +107,27 @@ update msg model =
                 ( { model | wishes = List.map updateWish model.wishes }, persist { wish | taken = isTaken } )
 
         WishTitle title ->
-            ( { model | wish = { title = title, description = model.wish.description, taken = model.wish.taken, id = model.wish.id } }, Cmd.none )
+            ( updateWish model (\wish -> { wish | title = title }), Cmd.none )
 
         WishDescription description ->
-            ( { model | wish = { title = model.wish.title, description = description, taken = model.wish.taken, id = model.wish.id } }, Cmd.none )
+            ( updateWish model (\wish -> { wish | description = description }), Cmd.none )
 
         SaveWish ->
-            ( { model | wish = { title = "", description = "", taken = False, id = Nothing } }, persist model.wish )
+            ( { model | wish = emptyWish }, persist model.wish )
+
+
+emptyWish : Wish
+emptyWish =
+    Wish Nothing "" "" False
+
+
+updateWish : Model -> (Wish -> Wish) -> Model
+updateWish model wishMaker =
+    let
+        wish =
+            wishMaker model.wish
+    in
+        { model | wish = wish }
 
 
 
@@ -155,7 +168,7 @@ view model =
                     , label [ for "description" ] [ text "Beskrivelse" ]
                     , textarea [ placeholder "Beskrivelse", id "description", onInput WishDescription, value model.wish.description ] []
                     , br [] []
-                    , input [ type' "submit", class "button-primary" ] [ text "Opret" ]
+                    , input [ type' "submit", class "button-primary", value "Opret" ] []
                     ]
                 ]
             ]
