@@ -11,3 +11,4 @@ type Msg
     | WishTitle String
     | WishDescription String
     | SaveWish
+    | Login

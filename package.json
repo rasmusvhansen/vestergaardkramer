@@ -4,10 +4,10 @@
   "description": "vestergaardkramer",
   "main": "index.js",
   "scripts": {
-    "watch": "chokidar **/*.elm -c \"elm make src/elm/Main.elm --output dist/elm.js\" --initial",
+    "watch": "npm run copy && chokidar **/*.elm -c \"elm make src/elm/Main.elm --output dist/elm.js\" --initial",
     "postinstall": "elm-package install -y",
     "clean": "rimraf dist/ && mkdir dist",
-    "copy": "copyfiles index.html dist && copyup src/js/*.js dist",
+    "copy": "copyfiles index.html dist && copyup src/js/*.js dist && copyup src/*.css dist",
     "build": "npm run clean && elm make src/elm/Main.elm --output dist/elm.js && npm run copy"
   },
   "repository": {

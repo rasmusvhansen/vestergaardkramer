@@ -12,10 +12,16 @@ import Dict
 port fbPush : Wish -> Cmd msg
 
 
+port fbTakeWish : ( String, Wish ) -> Cmd msg
+
+
 port fbRemove : WishId -> Cmd msg
 
 
 port getWishes : String -> Cmd msg
+
+
+port login : String -> Cmd msg
 
 
 port listItems : (Encode.Value -> msg) -> Sub msg

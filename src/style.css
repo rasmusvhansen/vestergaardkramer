@@ -1,0 +1,15 @@
+ul.menu {
+  list-style: none;
+  margin-bottom: 0;
+}
+
+ul.menu li {
+  position: relative;
+  float: left;
+  margin-bottom: 0;
+}
+
+ul.menu li a {
+  text-decoration: none;
+  margin-right: 35px;
+}

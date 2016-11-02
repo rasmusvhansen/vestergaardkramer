@@ -52,7 +52,7 @@ update msg model =
                     else
                         w
             in
-                ( { model | wishes = List.map updateWish model.wishes }, persist { wish | taken = isTaken } )
+                ( { model | wishes = List.map updateWish model.wishes }, fbTakeWish ( "rasmus", { wish | taken = isTaken } ) )
 
         WishTitle title ->
             ( updateWish model (\wish -> { wish | title = title }), Cmd.none )
@@ -61,7 +61,10 @@ update msg model =
             ( updateWish model (\wish -> { wish | description = description }), Cmd.none )
 
         SaveWish ->
-            ( { model | wish = emptyWish }, persist model.wish )
+            ( { model | wish = emptyWish }, fbPush model.wish )
+
+        Login ->
+            ( model, Commands.login (Debug.log "logging in" "") )
 
 
 emptyWish : Wish
@@ -103,7 +106,13 @@ viewWish wish =
 view : Model -> Html Msg
 view model =
     div [ class "container" ]
-        [ div [ class "row" ]
+        [ nav [ class "navbar" ]
+            [ div [ class "container" ]
+                [ viewMenu
+                ]
+            ]
+        , div
+            [ class "row" ]
             [ div [ class "one-half column" ]
                 [ subView model ]
             ]
@@ -120,7 +129,7 @@ subView model =
             viewWishAdmin model
 
         _ ->
-            text "No Route"
+            viewWishes model
 
 
 viewWishes : Model -> Html Msg
@@ -128,6 +137,23 @@ viewWishes model =
     div []
         [ h1 [] [ text "Ønsker" ]
         , div [] (List.map viewWish model.wishes)
+        ]
+
+
+viewWishItem : String -> Html Msg
+viewWishItem name =
+    li [] [ a [ href ("#/wishes/" ++ String.toLower name) ] [ text name ] ]
+
+
+viewMenu : Html Msg
+viewMenu =
+    ul [ class "menu" ]
+        [ button [ onClick Login ] [ text "Login" ]
+        , viewWishItem "Rasmus"
+        , viewWishItem "Camilla"
+        , viewWishItem "Jonas"
+        , viewWishItem "Mads"
+        , viewWishItem "Carl"
         ]
 
 
