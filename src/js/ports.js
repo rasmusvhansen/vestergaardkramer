@@ -10,20 +10,28 @@ firebase.initializeApp(config);
 
 var database = firebase.database();
 
-// Get values from Firebase
 var listRef = null;
-app.ports.getWishes.subscribe(function (person) {
-  if (listRef) listRef.off();
+function setListRef(person) {
+  if (listRef) {
+    listRef.off();
+  }
   listRef = database.ref('wishes/' + person + '/');
+}
+
+// Get values from Firebase
+
+app.ports.getWishes.subscribe(function (person) {
+  setListRef(person);  
   listRef.on('value', function (snapshot) {
     app.ports.listItems.send(snapshot.val());
   });
 });
 
 // Push change to Firebase
-app.ports.fbPush.subscribe(function (item) {
+app.ports.fbPush.subscribe(function (item) {  
   var id = item.id
   delete item.id
+  setListRef(item.person);
   if (id === null) {
     listRef.push(item)
   } else {
@@ -31,12 +39,10 @@ app.ports.fbPush.subscribe(function (item) {
   }
 })
 
-app.ports.fbTakeWish.subscribe(function (args) {
-  var person = args[0];
-  var item = args[1];
+app.ports.fbTakeWish.subscribe(function (item) {  
   var id = item.id;
   var taken = item.taken;
-  var wishRef = database.ref('wishes/' + person + '/' + id + '/taken');
+  var wishRef = database.ref('wishes/' + item.person + '/' + id + '/taken');
   wishRef.set(taken);
 })
 // Remove item

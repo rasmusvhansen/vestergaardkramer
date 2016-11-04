@@ -12,7 +12,7 @@ import Dict
 port fbPush : Wish -> Cmd msg
 
 
-port fbTakeWish : ( String, Wish ) -> Cmd msg
+port fbTakeWish : Wish -> Cmd msg
 
 
 port fbRemove : WishId -> Cmd msg
@@ -52,16 +52,12 @@ includeUniqueId ( uniqueId, item ) =
 
 itemsDecoder : Decode.Decoder Wish
 itemsDecoder =
-    Decode.object4 Wish
+    Decode.object5 Wish
         (Decode.maybe ("id" := Decode.string))
         ("title" := Decode.string)
         ("description" := Decode.string)
         ("taken" := Decode.bool)
-
-
-persist : Wish -> Cmd Msg
-persist item =
-    fbPush item
+        ("person" := Decode.string)
 
 
 

@@ -10,6 +10,7 @@ import Html.Attributes exposing (..)
 import Json.Encode as Encode
 import Navigation
 import String
+import Regex exposing (..)
 
 
 main =
@@ -52,7 +53,7 @@ update msg model =
                     else
                         w
             in
-                ( { model | wishes = List.map updateWish model.wishes }, fbTakeWish ( "rasmus", { wish | taken = isTaken } ) )
+                ( { model | wishes = List.map updateWish model.wishes }, fbTakeWish { wish | taken = isTaken } )
 
         WishTitle title ->
             ( updateWish model (\wish -> { wish | title = title }), Cmd.none )
@@ -60,23 +61,18 @@ update msg model =
         WishDescription description ->
             ( updateWish model (\wish -> { wish | description = description }), Cmd.none )
 
-        SaveWish ->
-            ( { model | wish = emptyWish }, fbPush model.wish )
+        SaveWish wish ->
+            ( { model | wish = Just (initWish wish.person) }, fbPush wish )
 
         Login ->
             ( model, Commands.login (Debug.log "logging in" "") )
-
-
-emptyWish : Wish
-emptyWish =
-    Wish Nothing "" "" False
 
 
 updateWish : Model -> (Wish -> Wish) -> Model
 updateWish model wishMaker =
     let
         wish =
-            wishMaker model.wish
+            Maybe.map wishMaker model.wish
     in
         { model | wish = wish }
 
@@ -85,21 +81,37 @@ updateWish model wishMaker =
 -- VIEW
 
 
+linkifyDescription : String -> Html Msg
+linkifyDescription description =
+    let
+        parts =
+            String.split "|||" (replace All (regex "https?://\\S*") (\{ match } -> "|||" ++ match ++ "|||") description)
+    in
+        span []
+            (List.map
+                (\part ->
+                    if (String.startsWith "http" part) then
+                        a [ href part, target "_blank" ] [ text part ]
+                    else
+                        text part
+                )
+                parts
+            )
+
+
 viewWish : Wish -> Html Msg
 viewWish wish =
-    div [ class "wish" ]
+    li [ class "wish" ]
         [ label []
-            [ h5 []
-                [ input
-                    [ type' "checkbox"
-                    , checked wish.taken
-                    , onClick (ToggleWish wish (not wish.taken))
-                    ]
-                    []
-                , text (" " ++ wish.title)
+            [ input
+                [ type' "checkbox"
+                , checked wish.taken
+                , onClick (ToggleWish wish (not wish.taken))
                 ]
+                []
+            , text (" " ++ wish.title)
             ]
-        , p [] [ text wish.description ]
+        , p [] [ linkifyDescription wish.description ]
         ]
 
 
@@ -126,7 +138,12 @@ subView model =
             viewWishes model
 
         Just "wishadmin" ->
-            viewWishAdmin model
+            case model.wish of
+                Just wish ->
+                    viewWishAdmin wish
+
+                _ ->
+                    text "ERROR NO WISH DEFINED"
 
         _ ->
             viewWishes model
@@ -136,7 +153,7 @@ viewWishes : Model -> Html Msg
 viewWishes model =
     div []
         [ h1 [] [ text "Ønsker" ]
-        , div [] (List.map viewWish model.wishes)
+        , ul [ class "wishes" ] (List.map viewWish model.wishes)
         ]
 
 
@@ -157,16 +174,16 @@ viewMenu =
         ]
 
 
-viewWishAdmin : Model -> Html Msg
-viewWishAdmin model =
+viewWishAdmin : Wish -> Html Msg
+viewWishAdmin wish =
     div []
-        [ Html.form [ class "one-half column", onSubmit SaveWish ]
+        [ Html.form [ class "one-half column", onSubmit (SaveWish wish) ]
             [ h3 [] [ text "Rediger" ]
             , div [ class "row" ]
                 [ label [ for "titel" ] [ text "Titel" ]
-                , input [ placeholder "Titel", id "titel", onInput WishTitle, value model.wish.title ] []
+                , input [ placeholder "Titel", id "titel", onInput WishTitle, value wish.title ] []
                 , label [ for "description" ] [ text "Beskrivelse" ]
-                , textarea [ placeholder "Beskrivelse", id "description", onInput WishDescription, value model.wish.description ] []
+                , textarea [ placeholder "Beskrivelse", id "description", onInput WishDescription, value wish.description ] []
                 , br [] []
                 , input [ type' "submit", class "button-primary", value "Opret" ] []
                 ]

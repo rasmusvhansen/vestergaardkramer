@@ -1,11 +1,16 @@
 module Model exposing (..)
 
 
+type alias Person =
+    String
+
+
 type alias Wish =
     { id : Maybe String
     , title : String
     , description : String
     , taken : Bool
+    , person : String
     }
 
 
@@ -21,7 +26,7 @@ type alias WishId =
 
 type alias Model =
     { wishes : List Wish
-    , wish : Wish
+    , wish : Maybe Wish
     , error : Maybe String
     , route : Route
     }
@@ -29,9 +34,14 @@ type alias Model =
 
 emptyModel : Model
 emptyModel =
-    initModel (Route Nothing Nothing)
+    initModel (Route Nothing Nothing) Nothing
 
 
-initModel : Route -> Model
-initModel route =
-    Model [] { title = "", description = "", taken = False, id = Nothing } Nothing route
+initWish : Person -> Wish
+initWish person =
+    Wish Nothing "" "" False person
+
+
+initModel : Route -> Maybe Wish -> Model
+initModel route wish =
+    Model [] wish Nothing route

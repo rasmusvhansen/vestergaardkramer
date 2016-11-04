@@ -10,5 +10,5 @@ type Msg
     | GotWishes Encode.Value
     | WishTitle String
     | WishDescription String
-    | SaveWish
+    | SaveWish Wish
     | Login

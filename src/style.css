@@ -13,3 +13,8 @@ ul.menu li a {
   text-decoration: none;
   margin-right: 35px;
 }
+
+ul.wishes {
+  list-style: none;
+  margin-bottom: 0;
+}
