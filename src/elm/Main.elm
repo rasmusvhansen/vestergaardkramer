@@ -10,6 +10,7 @@ import Html.Attributes exposing (..)
 import Json.Encode as Encode
 import Navigation
 import String
+import Char
 import Regex exposing (..)
 
 
@@ -19,8 +20,16 @@ main =
         , view = view
         , update = update
         , urlUpdate = Routing.urlUpdate
-        , subscriptions = (\_ -> listItems Messages.GotWishes)
+        , subscriptions = subscriptions
         }
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ listItems Messages.GotWishes
+        , user Messages.UserLoggedIn
+        ]
 
 
 
@@ -64,8 +73,14 @@ update msg model =
         SaveWish wish ->
             ( { model | wish = Just (initWish wish.person) }, fbPush wish )
 
+        DeleteWish wish ->
+            ( model, fbRemove wish )
+
         Login ->
             ( model, Commands.login (Debug.log "logging in" "") )
+
+        UserLoggedIn user ->
+            ( { model | user = Just user }, Cmd.none )
 
 
 updateWish : Model -> (Wish -> Wish) -> Model
@@ -99,11 +114,38 @@ linkifyDescription description =
             )
 
 
-viewWish : Wish -> Html Msg
-viewWish wish =
+view : Model -> Html Msg
+view model =
+    div [ class "container" ]
+        [ nav [ class "navbar" ]
+            [ div [ class "container" ]
+                [ viewMenu model.user
+                ]
+            ]
+        , div
+            [ class "row" ]
+            [ div [ class "one-half column" ]
+                [ subView model ]
+            ]
+        ]
+
+
+viewDeleteWish : Maybe String -> Wish -> Html Msg
+viewDeleteWish user wish =
+    case user of
+        Nothing ->
+            text ""
+
+        Just u ->
+            button [ class "fa fa-trash wish__delete", onClick (DeleteWish wish) ] []
+
+
+viewWish : Maybe String -> Wish -> Html Msg
+viewWish user wish =
     li [ class "wish" ]
         [ label []
-            [ input
+            [ viewDeleteWish user wish
+            , input
                 [ type' "checkbox"
                 , checked wish.taken
                 , onClick (ToggleWish wish (not wish.taken))
@@ -112,22 +154,6 @@ viewWish wish =
             , text (" " ++ wish.title)
             ]
         , p [] [ linkifyDescription wish.description ]
-        ]
-
-
-view : Model -> Html Msg
-view model =
-    div [ class "container" ]
-        [ nav [ class "navbar" ]
-            [ div [ class "container" ]
-                [ viewMenu
-                ]
-            ]
-        , div
-            [ class "row" ]
-            [ div [ class "one-half column" ]
-                [ subView model ]
-            ]
         ]
 
 
@@ -149,11 +175,25 @@ subView model =
             viewWishes model
 
 
+addWish : Maybe String -> Maybe String -> Html Msg
+addWish person user =
+    case ( person, user ) of
+        ( Just p, Just _ ) ->
+            a [ href ("#/wishadmin/" ++ String.toLower p) ] [ text "Opret nyt ønske" ]
+
+        _ ->
+            text ""
+
+
 viewWishes : Model -> Html Msg
 viewWishes model =
     div []
-        [ h1 [] [ text "Ønsker" ]
-        , ul [ class "wishes" ] (List.map viewWish model.wishes)
+        [ h1 []
+            [ text "Ønsker for "
+            , Maybe.withDefault (text "ukendt") (Maybe.map (\w -> text (capitalize w.person)) model.wish)
+            ]
+        , addWish (Maybe.map (\w -> w.person) model.wish) model.user
+        , ul [ class "wishes" ] (List.map (viewWish model.user) model.wishes)
         ]
 
 
@@ -162,16 +202,26 @@ viewWishItem name =
     li [] [ a [ href ("#/wishes/" ++ String.toLower name) ] [ text name ] ]
 
 
-viewMenu : Html Msg
-viewMenu =
+viewMenu : Maybe String -> Html Msg
+viewMenu user =
     ul [ class "menu" ]
-        [ button [ onClick Login ] [ text "Login" ]
+        [ viewUser user
         , viewWishItem "Rasmus"
         , viewWishItem "Camilla"
         , viewWishItem "Jonas"
         , viewWishItem "Mads"
         , viewWishItem "Carl"
         ]
+
+
+viewUser : Maybe String -> Html Msg
+viewUser user =
+    case user of
+        Just u ->
+            text u
+
+        _ ->
+            button [ onClick Login ] [ text "Login" ]
 
 
 viewWishAdmin : Wish -> Html Msg
@@ -189,3 +239,17 @@ viewWishAdmin wish =
                 ]
             ]
         ]
+
+
+
+-- functions
+
+
+capitalize : String -> String
+capitalize string =
+    case String.uncons string of
+        Nothing ->
+            ""
+
+        Just ( head, tail ) ->
+            String.cons (Char.toUpper head) tail

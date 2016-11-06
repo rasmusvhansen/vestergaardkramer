@@ -13,13 +13,13 @@ urlUpdate result model =
         Ok route ->
             case ( route.route, route.params ) of
                 ( Just "wishes", Just (person :: rest) ) ->
-                    ( initModel route (Just (initWish person)), getWishes (Debug.log "person" person) )
+                    ( initModel route (Just (initWish person)) model.user, getWishes (Debug.log "person" person) )
 
                 ( Just "wishadmin", Just (person :: rest) ) ->
-                    ( initModel route (Just (initWish person)), getWishes (Debug.log "person" person) )
+                    ( initModel route (Just (initWish person)) model.user, getWishes (Debug.log "person" person) )
 
                 _ ->
-                    ( initModel route Nothing, Cmd.none )
+                    ( initModel route Nothing model.user, Cmd.none )
 
         Err _ ->
             ( model, Cmd.none )

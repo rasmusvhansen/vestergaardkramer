@@ -11,4 +11,6 @@ type Msg
     | WishTitle String
     | WishDescription String
     | SaveWish Wish
+    | DeleteWish Wish
     | Login
+    | UserLoggedIn String

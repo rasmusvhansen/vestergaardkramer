@@ -16,16 +16,18 @@ function setListRef(person) {
     listRef.off();
   }
   listRef = database.ref('wishes/' + person + '/');
+  subscribeToWishes(person);
 }
 
 // Get values from Firebase
 
-app.ports.getWishes.subscribe(function (person) {
-  setListRef(person);  
+function subscribeToWishes(person) {   
   listRef.on('value', function (snapshot) {
     app.ports.listItems.send(snapshot.val());
   });
-});
+}
+
+app.ports.getWishes.subscribe(setListRef);
 
 // Push change to Firebase
 app.ports.fbPush.subscribe(function (item) {  
@@ -39,15 +41,16 @@ app.ports.fbPush.subscribe(function (item) {
   }
 })
 
+app.ports.fbRemove.subscribe(function (wish) {
+  setListRef(wish.person);
+  listRef.child(wish.id).remove();  
+})
+
 app.ports.fbTakeWish.subscribe(function (item) {  
   var id = item.id;
   var taken = item.taken;
   var wishRef = database.ref('wishes/' + item.person + '/' + id + '/taken');
   wishRef.set(taken);
-})
-// Remove item
-app.ports.fbRemove.subscribe(function (id) {
-  listRef.child(id).remove()
 })
 
 app.ports.login.subscribe(function (str) {
@@ -57,7 +60,7 @@ app.ports.login.subscribe(function (str) {
     var token = result.credential.accessToken;
     // The signed-in user info.
     var user = result.user;
-    app.ports.user.send(user);
+    app.ports.user.send(user.email);
     // ...
   }).catch(function (error) {
     // Handle Errors here.

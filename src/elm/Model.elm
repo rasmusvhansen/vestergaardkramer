@@ -29,12 +29,13 @@ type alias Model =
     , wish : Maybe Wish
     , error : Maybe String
     , route : Route
+    , user : Maybe String
     }
 
 
 emptyModel : Model
 emptyModel =
-    initModel (Route Nothing Nothing) Nothing
+    initModel (Route Nothing Nothing) Nothing Nothing
 
 
 initWish : Person -> Wish
@@ -42,6 +43,6 @@ initWish person =
     Wish Nothing "" "" False person
 
 
-initModel : Route -> Maybe Wish -> Model
-initModel route wish =
-    Model [] wish Nothing route
+initModel : Route -> Maybe Wish -> Maybe String -> Model
+initModel route wish user =
+    Model [] wish Nothing route user

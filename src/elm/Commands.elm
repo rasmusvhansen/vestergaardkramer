@@ -15,13 +15,16 @@ port fbPush : Wish -> Cmd msg
 port fbTakeWish : Wish -> Cmd msg
 
 
-port fbRemove : WishId -> Cmd msg
+port fbRemove : Wish -> Cmd msg
 
 
 port getWishes : String -> Cmd msg
 
 
 port login : String -> Cmd msg
+
+
+port user : (String -> msg) -> Sub msg
 
 
 port listItems : (Encode.Value -> msg) -> Sub msg

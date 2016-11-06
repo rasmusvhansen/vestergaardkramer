@@ -18,3 +18,9 @@ ul.wishes {
   list-style: none;
   margin-bottom: 0;
 }
+
+.wish__delete {
+  height: auto;
+  padding: 0;
+  margin-right: 5px;
+}
