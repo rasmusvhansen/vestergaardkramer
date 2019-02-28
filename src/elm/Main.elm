@@ -1,17 +1,17 @@
-port module Main exposing (..)
+port module Main exposing (addWish, capitalize, init, linkifyDescription, main, subView, subscriptions, update, updateWish, view, viewDeleteWish, viewMenu, viewUser, viewWish, viewWishAdmin, viewWishItem, viewWishes)
 
-import Routing
+import Char
 import Commands exposing (..)
+import Html exposing (..)
+import Html.Attributes exposing (..)
+import Html.Events exposing (..)
+import Json.Encode as Encode
 import Messages exposing (..)
 import Model exposing (..)
-import Html exposing (..)
-import Html.Events exposing (..)
-import Html.Attributes exposing (..)
-import Json.Encode as Encode
 import Navigation
-import String
-import Char
 import Regex exposing (..)
+import Routing
+import String
 
 
 main =
@@ -49,7 +49,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotWishes json ->
-            ( model, (receive json) )
+            ( model, receive json )
 
         WishUpdate newWishes ->
             ( { model | wishes = newWishes }, Cmd.none )
@@ -59,10 +59,11 @@ update msg model =
                 updateWish w =
                     if w == wish then
                         { w | taken = isTaken }
+
                     else
                         w
             in
-                ( { model | wishes = List.map updateWish model.wishes }, fbTakeWish { wish | taken = isTaken } )
+            ( { model | wishes = List.map updateWish model.wishes }, fbTakeWish { wish | taken = isTaken } )
 
         WishTitle title ->
             ( updateWish model (\wish -> { wish | title = title }), Cmd.none )
@@ -89,7 +90,7 @@ updateWish model wishMaker =
         wish =
             Maybe.map wishMaker model.wish
     in
-        { model | wish = wish }
+    { model | wish = wish }
 
 
 
@@ -102,16 +103,17 @@ linkifyDescription description =
         parts =
             String.split "|||" (replace All (regex "https?://\\S*") (\{ match } -> "|||" ++ match ++ "|||") description)
     in
-        span []
-            (List.map
-                (\part ->
-                    if (String.startsWith "http" part) then
-                        a [ href part, target "_blank" ] [ text part ]
-                    else
-                        text part
-                )
-                parts
+    span []
+        (List.map
+            (\part ->
+                if String.startsWith "http" part then
+                    a [ href part, target "_blank" ] [ text part ]
+
+                else
+                    text part
             )
+            parts
+        )
 
 
 view : Model -> Html Msg
@@ -124,7 +126,7 @@ view model =
             ]
         , div
             [ class "row" ]
-            [ div [ class "one-half column" ]
+            [ div [ class "ten columns" ]
                 [ subView model ]
             ]
         ]
@@ -145,16 +147,26 @@ viewWish user wish =
     li [ class "wish" ]
         [ label []
             [ viewDeleteWish user wish
-            , input
+            , viewCheckWish user wish
+            , text (" " ++ wish.title)
+            ]
+        , p [] [ linkifyDescription wish.description ]
+        ]
+
+
+viewCheckWish : Maybe String -> Wish -> Html Msg
+viewCheckWish user wish =
+    case user of
+        Nothing ->
+            input
                 [ type' "checkbox"
                 , checked wish.taken
                 , onClick (ToggleWish wish (not wish.taken))
                 ]
                 []
-            , text (" " ++ wish.title)
-            ]
-        , p [] [ linkifyDescription wish.description ]
-        ]
+
+        Just u ->
+            text ""
 
 
 subView : Model -> Html Msg
@@ -206,6 +218,7 @@ viewMenu : Maybe String -> Html Msg
 viewMenu user =
     ul [ class "menu" ]
         [ viewUser user
+        , viewWishItem "2x40"
         , viewWishItem "Rasmus"
         , viewWishItem "Camilla"
         , viewWishItem "Jonas"
@@ -227,7 +240,7 @@ viewUser user =
 viewWishAdmin : Wish -> Html Msg
 viewWishAdmin wish =
     div []
-        [ Html.form [ class "one-half column", onSubmit (SaveWish wish) ]
+        [ Html.form [ class "ten columns", onSubmit (SaveWish wish) ]
             [ h3 [] [ text "Rediger" ]
             , div [ class "row" ]
                 [ label [ for "titel" ] [ text "Titel" ]
